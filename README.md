@@ -1,1 +1,2 @@
 # Hangman
+Ability to play hangman on your own or with multiple people. If you are playing on your own you will be given a random word from a list of words in the program; otherwise, you will be able to submit your own word for others to try to guess. At the end you can choose whether or not you want to play again without needing to rerun the program.
