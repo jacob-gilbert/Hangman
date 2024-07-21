@@ -10,11 +10,19 @@ def players_selection():
             break
     return num_players
 
+gamemode = players_selection()
+if gamemode == "2":
+    player1 = input("\nSubmit a name for player 1, this person chooses the word first\n")
+    player2 = input("Submit a name for player 2, this person guesses the word first\n")
+num_games = 1
+won1 = 0
+won2 = 0
+print("\nThis is game", num_games)
+
 while True:
     words = ['python', 'anaconda', 'garter', 'cobra', 'mamba']
     used_letters = set()
 
-    gamemode = players_selection()
     if gamemode == "1":
         # randomly choose a word from the list
         chosen_word = random.choice(words)
@@ -50,6 +58,13 @@ while True:
             attempts -= 1
             if attempts == 0:
                 print("0 Mistakes Left, You Failed")
+                if gamemode == "2":
+                    if num_games % 2 == 0:
+                        print(player2, "won!")
+                        won2 += 1
+                    else:
+                        print(player1, "won!")
+                        won1 += 1
             else:
                 print("Mistakes Left:", attempts)
         
@@ -57,6 +72,19 @@ while True:
     if '_' not in word_display:
         print("You guessed the word!")
         print(' '.join(word_display))
+        if gamemode == "2":
+            if num_games % 2 == 1:
+                print(player2, "won!")
+                won2 += 1
+            else:
+                print(player1, "won!")
+                won1 += 1
+    print("\nGame", num_games, "over!")
+    if gamemode == "2":
+        print(f"Scoreboard: {player1} won {won1} games and {player2} won {won2} games so far")
     play_again = input("Would you like to play again (y/n)?\n")
+    num_games += 1
     if play_again != 'y':
         break
+    if gamemode == "2":
+        print("\nSwitch who chooses the word and who guesses the word")
