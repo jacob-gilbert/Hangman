@@ -1,112 +1,199 @@
+import tkinter
 import random
+import string
 
-# number of players / one person picks a word or the computer picks a word
-def players_selection():
-    num_players = 0
-    print("Select your gamemode:")
-    while True:
-        num_players = input("If you want the computer to choose a word press 1\nor if you want to choose a word press 2\n")
-        if num_players == "1" or num_players == "2":
-            break
-    return num_players
+WORD_LIST = ["ABANDONMENT", "ACCEPTANCE", "BACKWARDNESS", "BLACKSMITH", "CALCULATE", "CHALLENGE",
+    "CLASSROOM", "CONTRACTOR", "DIFFICULT", "DIFFERENT", "DISCOVERY", "EDUCATION",
+    "EMPHASIS", "ENGINEER", "EXPERIENCE", "FOREVER", "GENERATOR", "IMAGINE", "INCREDIBLE",
+    "INSTITUTE", "JOURNALISM", "LABORATORY", "LEARNING", "LEGITIMATE", "LITERATURE", 
+    "MYSTERIOUS", "OBLIGATION", "OPERATION", "PARLIAMENT", "PERFORMANCE", "PRESENTATION",
+    "PROFOUND", "QUESTION", "RECOVERY", "RECRUITMENT", "RESILIENCE", "ROMANTIC", "SCIENTIFIC",
+    "SITUATION", "SOLUTION", "STRENGTHEN", "STRUCTURE", "SUDDENLY", "TECHNOLOGY", "UNIVERSAL",
+    "VOCABULARY", "VOLUNTEER", "WILDERNESS", "ADVENTURE", "AFTERSHOCK", "BEAUTIFUL", "BRILLIANCE",
+    "CALCULATION", "CAMPAIGN", "COMPLICATED", "COUNTRYSIDE", "CUSTOMER", "DICTIONARY", "DOMINANCE",
+    "ESTABLISHMENT", "EXCELLENCE", "FANTASTIC", "FASHIONABLE", "FREELANCE", "GENEROSITY", "HORIZON",
+    "IDENTICAL", "IMPORTANT", "INCREDIBLE", "INSTITUTE", "INSISTENCE", "INVENTION", "JOURNALIST",
+    "LOCATION", "LUMINOUS", "MAINTENANCE", "MARVELLOUS", "METROPOLITAN", "OPERATION", "OPPONENT",
+    "PERCEPTION", "PHOTOGRAPH", "PREPARATION", "PROTECTION", "RATIONAL", "RELIABLE", "REPUTATION",
+    "SIGNIFICANT", "STRATEGIC", "SUPERIOR", "TECHNOLOGY", "TRADITION", "TRANQUILITY", "UNFORTUNATE",
+    "UNIVERSAL", "VARIETY", "VOCATION", "WONDERFUL", "WORSHIP", "ABSTRACTION", "ATTRACTIVE",
+    "COLLECTION", "CONCLUSION", "DESTINATION", "DYNAMICALLY", "ENVIRONMENT", "EXPRESSION",
+    "GATHERING", "INSPIRATION", "KNOWLEDGE", "LUXURIOUS", "METAPHORICAL", "PARTICULAR", "PROFESSIONAL",
+    "REMARKABLE", "SENSATIONAL", "TRANSPORTATION", "UNBELIEVABLE"]
 
-gamemode = players_selection()
-if gamemode == "2":
-    player1 = input("\nSubmit a name for player 1, this person chooses the word first\n")
-    player2 = input("Submit a name for player 2, this person guesses the word first\n")
-num_games = 1
-won1 = 0
-won2 = 0
-print("\nThis is game", num_games)
-# the above lines are outside the while loop because this information
-# either stays constant the entire time or is incremented in the while loop
+ROWS = 15
+COLS = 15
+TILE_SIZE = 25
 
-# the below while loop gives the ability to play multiple games without rerunning the program
-# if the players no long wish to continue the while loop will break and the program will stop
-while True:
-    words = ['python', 'anaconda', 'garter', 'cobra', 'mamba']
-    used_letters = set()
+WINDOW_WIDTH = TILE_SIZE * COLS
+WINDOW_HEIGHT = TILE_SIZE * ROWS
 
-    # single player
-    if gamemode == "1":
-        # randomly choose a word from the list
-        chosen_word = random.choice(words)
-        word_display = ['_' for _ in chosen_word]
-        attempts = 8 # number of allowed attempts
+class Tile:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
-    # 2 players
+def new_game():
+    global word, guesses, word_length, gameover, won, known_letters_list, known_letters_string, known_letters, clicked_set
+
+    new_word = WORD_LIST[random.randint(0, len(WORD_LIST)-1)]
+    while (new_word == word):
+        new_word = WORD_LIST[random.randint(0, len(WORD_LIST)-1)]
+    word = new_word
+
+    guesses = 7
+    word_length = len(word)
+    gameover = False
+    won = False
+    known_letters_list = ["_"] * word_length
+    known_letters_string = "_ " * word_length
+    known_letters = 0
+    clicked_set = set()
+
+    # reset the letters
+    for index, letter in enumerate(alphabet):
+        row = index // num_columns  # Calculate row based on index
+        column = index % num_columns  # Calculate column based on index
+        button = tkinter.Button(frame_right, text=letter, font=("Consolas"))
+        button.grid(row=row, column=column, padx=10, pady=10, sticky='ew')
+
+        # Bind the button click event to the function
+        button.config(command=lambda b=button: on_button_click(b))
+
+    # reset the known letters visible on the screen
+    letters_to_guess.config(text=known_letters_string)
+
+def on_button_click(button):
+    global known_letters_list, known_letters_string, known_letters, won
+
+    # if the game is over don't want the user's clicks to change any of the letters
+    if (gameover or won):
+        return
+    
+    letter = button.cget('text')  # Get the button's text
+
+    if letter in clicked_set:
+        return
     else:
-        # player inputs word and number of attempts they want to allow another player
-        chosen_word = input("Type your word:\n")
-        # hides the choosen word by print multiple blank lines so the guessing player cannot see it
-        for i in range(15):
-            print()
-        word_display = ['_' for _ in chosen_word]
+        clicked_set.add(letter)
 
-        # forces uses to pick between allowing 5 guesses to 12 guesses, breaks once a number is chosen that is in this range
-        while True:
-            attempts = input("How many attempts would you like to give the other player (must be between 5 and 12)?\n")
-            if attempts in ['5', '6', '7', '8', '9', '10', '11', '12']:
-                break
-            print("Number must be between 5 and 12, try again")
-            
-        # input is automatically made as a string, so convert to int to process it as a number
-        attempts = int(attempts)
-
-    # while loop breaks if you player runs out of attempts or correctly guesses the word
-    while attempts > 0 and '_' in word_display:
-
-        # shows the player which letters have been guessed correctly and where they are in the word
-        print('\n' + ' '.join(word_display))
-        print("Mistakes Left:", attempts)
-        guess = input("Guess a letter: ").lower()
-
-        if guess in used_letters:
-            print(f"{guess} already guessed, choose a new letter")
-        elif guess in chosen_word:
-            used_letters.add(guess)
-            for index, letter in enumerate(chosen_word):
-                if letter == guess:
-                    word_display[index] = guess # reveal letter(s)
-        else:
-            print(f"{guess} does not appear in the word")
-            used_letters.add(guess)
-            attempts -= 1
-
-            # prints winner when someone has run out of attempts
-            if attempts == 0:
-                print("0 Mistakes Left, You Failed")
-                if gamemode == "2":
-                    if num_games % 2 == 0:
-                        print(player2, "won!")
-                        won2 += 1
-                    else:
-                        print(player1, "won!")
-                        won1 += 1
-            else:
-                print("Mistakes Left:", attempts)
+    if letter in word:
+        button.config(bg='green')
+        update_guesses(True)
         
-    # when the game ends from correctly guessing the word
-    if '_' not in word_display:
-        print("You guessed the word!")
-        print(' '.join(word_display))
-        if gamemode == "2":
-            if num_games % 2 == 1:
-                print(player2, "won!")
-                won2 += 1
-            else:
-                print(player1, "won!")
-                won1 += 1
-    
-    print("\nGame", num_games, "over!")
+        count = 0
+        for char in word:
+            if char == letter:
+                known_letters_list[count] = letter
+                known_letters += 1
+            count += 1
+        
+        known_letters_string = ""
+        for _ in known_letters_list:
+            known_letters_string = known_letters_string + _ + " "
+        letters_to_guess.config(text=known_letters_string)
 
-    # shows updated scoreboard
-    if gamemode == "2":
-        print(f"Scoreboard: {player1} won {won1} games and {player2} won {won2} games so far")
+        if known_letters == word_length:
+            won = True
+    else:
+        button.config(bg='red')
+        update_guesses(False)
+
+
+def draw():
+    global guesses
+
+    canvas.delete("all")
     
-    play_again = input("Would you like to play again (y/n)?\n")
-    num_games += 1
-    if play_again != 'y':
-        break
-    if gamemode == "2":
-        print("\nSwitch who chooses the word and who guesses the word")
+    if (gameover):
+        canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, font="Arial 20",
+                           text=f"Game Over", fill="red")
+    elif (won):
+        canvas.create_text(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, font="Arial 20",
+                           text=f"You Won!", fill="red")
+    else:
+        canvas.create_text(60, 20, font="Arial 10", text=f"Guesses Left: {guesses}", fill="black")
+
+    window.after(100, draw) # after 100ms we call draw again which is 10 frames/sec
+
+
+def update_guesses(right):
+    global guesses, gameover
+
+    if (not right):
+        guesses -= 1
+        if guesses == 0:
+            gameover = True
+
+
+# initialize game
+word = WORD_LIST[random.randint(0, len(WORD_LIST)-1)]
+guesses = 7
+word_length = len(word)
+gameover = False
+won = False
+known_letters_list = ["_"] * word_length
+known_letters_string = "_ " * word_length
+known_letters = 0
+clicked_set = set()
+
+# game window
+window = tkinter.Tk()
+window.title("Hangman")
+window.resizable(False, False) # user cannot change the size of the window
+
+frame_left = tkinter.Frame(window, bg='lightblue')
+frame_left.grid(row=0, column=0, sticky='nsew')
+
+canvas = tkinter.Canvas(frame_left, bg="white", width=WINDOW_WIDTH, height=WINDOW_HEIGHT, borderwidth=0, highlightthickness=0)
+canvas.pack(fill="both", expand=True)
+
+frame_right = tkinter.Frame(window, bg="lightgray")
+frame_right.grid(row=0, column=1, sticky='nsew')
+
+# Add alphabet buttons to the right frame
+alphabet = string.ascii_uppercase  # 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+# Number of columns for buttons
+num_columns = 7
+
+for index, letter in enumerate(alphabet):
+    row = index // num_columns  # Calculate row based on index
+    column = index % num_columns  # Calculate column based on index
+    button = tkinter.Button(frame_right, text=letter, font=("Consolas"))
+    button.grid(row=row, column=column, padx=10, pady=10, sticky='ew')
+
+    # Bind the button click event to the function
+    button.config(command=lambda b=button: on_button_click(b)) # the last assignment of button is Z, so if we do not set b = button and just use button it will only be Z, b = button remembers the specific letter when each iteration of the for loop runs
+
+# creating a restart button
+restart_button = tkinter.Button(frame_right, text="Restart", font=("Consolas"), background="red",
+                        foreground="white", command=new_game)
+restart_button.grid(row=6, column=0, columnspan=2, sticky="nsew")
+
+frame_below = tkinter.Frame(window, bg="navy")
+frame_below.grid(row=1, column=0, columnspan=2, sticky="nsew")
+
+# creating a label to display the known and unknown letters of the word to be guessed
+letters_to_guess = tkinter.Label(frame_below, text=known_letters_string , font=("Consolas", 40),
+                      background="navy", foreground="white")
+letters_to_guess.pack(fill = "x")
+
+window.update()
+
+# center the window
+window_width = window.winfo_width()
+window_height = window.winfo_height()
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight() - 75 # the -75 is specific to my screen
+
+window_x = int((screen_width/2) - (window_width/2))
+window_y = int((screen_height/2) - (window_height/2))
+
+# format "(w)x(h)+(x)+(y)"
+window.geometry(f"{window_width}x{window_height}+{window_x}+{window_y}")
+
+
+draw()
+
+window.mainloop()
