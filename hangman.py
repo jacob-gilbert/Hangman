@@ -161,13 +161,13 @@ for index, letter in enumerate(alphabet):
     row = index // num_columns  # Calculate row based on index
     column = index % num_columns  # Calculate column based on index
     button = tkinter.Button(frame_right, text=letter, font=("Consolas"))
-    button.grid(row=row, column=column, padx=10, pady=10, sticky='ew')
+    button.grid(row=row, column=column, padx=12, pady=10, sticky='ew')
 
     # Bind the button click event to the function
     button.config(command=lambda b=button: on_button_click(b)) # the last assignment of button is Z, so if we do not set b = button and just use button it will only be Z, b = button remembers the specific letter when each iteration of the for loop runs
 
 # creating a restart button
-restart_button = tkinter.Button(frame_right, text="Restart", font=("Consolas"), background="red",
+restart_button = tkinter.Button(frame_right, text="New Game", font=("Consolas"), background="red",
                         foreground="white", command=new_game)
 restart_button.grid(row=6, column=0, columnspan=2, sticky="nsew")
 
